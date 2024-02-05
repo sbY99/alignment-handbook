@@ -22,9 +22,11 @@ import random
 import sys
 
 import datasets
+from datasets import Dataset
 import torch
 import transformers
 from transformers import set_seed
+import json
 
 from alignment import (
     DataArguments,
@@ -73,7 +75,7 @@ def main():
         + f" distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
     )
     logger.info(f"Model parameters {model_args}")
-    logger.info(f"Data parameters {data_args}")
+    #logger.info(f"Data parameters {data_args}")
     logger.info(f"Training/evaluation parameters {training_args}")
 
     # Check for last checkpoint
@@ -84,11 +86,9 @@ def main():
     ###############
     # Load datasets
     ###############
-    raw_datasets = get_datasets(data_args, splits=data_args.dataset_splits)
-    logger.info(
-        f"Training on the following datasets and their proportions: {[split + ' : ' + str(dset.num_rows) for split, dset in raw_datasets.items()]}"
-    )
-    column_names = list(raw_datasets["train"].features)
+    #raw_datasets = get_datasets(data_args, splits=data_args.dataset_splits)
+    #logger.info(f"Training on the following datasets and their proportions: {[split + ' : ' + str(dset.num_rows) for split, dset in raw_datasets.items()]}")
+    #column_names = list(raw_datasets["train"].features)
 
     ################
     # Load tokenizer
@@ -98,6 +98,7 @@ def main():
     #####################
     # Apply chat template
     #####################
+    '''
     raw_datasets = raw_datasets.map(
         apply_chat_template,
         fn_kwargs={"tokenizer": tokenizer, "task": "sft"},
@@ -105,12 +106,29 @@ def main():
         remove_columns=column_names,
         desc="Applying chat template",
     )
-    train_dataset = raw_datasets["train"]
-    eval_dataset = raw_datasets["test"]
+    '''
+    #train_dataset = raw_datasets["train"]
+    #eval_dataset = raw_datasets["test"]
 
-    with training_args.main_process_first(desc="Log a few random samples from the processed training set"):
-        for index in random.sample(range(len(raw_datasets["train"])), 3):
-            logger.info(f"Sample {index} of the processed training set:\n\n{raw_datasets['train'][index]['text']}")
+    with open(data_args.train_data_path, "r") as d:
+        train_data = json.load(d)
+    with open(data_args.test_data_path, "r") as d:
+        test_data = json.load(d)
+
+    train_texts = []
+    test_texts = []
+
+    for data in test_data['data']:
+        train_texts.append(f"<|user|>{data['question']}{tokenizer.eos_token}<|assistant|>{data['answer']}{tokenizer.eos_token}")
+    for data in test_data['data']:
+        test_texts.append(f"<|user|>{data['question']}{tokenizer.eos_token}<|assistant|>{data['answer']}{tokenizer.eos_token}")
+
+    train_dataset = Dataset.from_dict({'text':train_texts})
+    eval_dataset = Dataset.from_dict({'text':test_texts})
+
+    #with training_args.main_process_first(desc="Log a few random samples from the processed training set"):
+    #    for index in random.sample(range(len(raw_datasets["train"])), 3):
+    #        logger.info(f"Sample {index} of the processed training set:\n\n{raw_datasets['train'][index]['text']}")
 
     #######################
     # Load pretrained model
@@ -184,8 +202,8 @@ def main():
     # Save everything else on main process
     kwargs = {
         "finetuned_from": model_args.model_name_or_path,
-        "dataset": list(data_args.dataset_mixer.keys()),
-        "dataset_tags": list(data_args.dataset_mixer.keys()),
+        #"dataset": list(data_args.dataset_mixer.keys()),
+        #"dataset_tags": list(data_args.dataset_mixer.keys()),
         "tags": ["alignment-handbook"],
     }
     if trainer.accelerator.is_main_process:
@@ -194,9 +212,6 @@ def main():
         trainer.model.config.use_cache = True
         trainer.model.config.save_pretrained(training_args.output_dir)
 
-    if training_args.push_to_hub is True:
-        logger.info("Pushing to hub...")
-        trainer.push_to_hub(**kwargs)
 
     logger.info("*** Training complete ***")
 
