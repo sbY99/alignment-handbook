@@ -15,6 +15,7 @@
 # limitations under the License.
 import logging
 import random
+from datasets import Dataset
 import sys
 import pandas as pd
 import torch
@@ -133,7 +134,7 @@ def main():
 
         train_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>{chosen}{tokenizer.eos_token}")
         train_chosen.append(chosen)
-        train_chosen.append(rejected)
+        train_rejected.append(rejected)
     
     for i in range(len(eval_data)):
         row = eval_data.iloc[i]
@@ -143,7 +144,10 @@ def main():
 
         eval_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>{chosen}{tokenizer.eos_token}")
         eval_chosen.append(chosen)
-        eval_chosen.append(rejected)
+        eval_rejected.append(rejected)
+
+    train_dataset = Dataset.from_dict({'prompt':train_prompts,'chosen':train_chosen,'rejected':train_rejected})
+    eval_dataset = Dataset.from_dict({'prompt':eval_prompts,'chosen':eval_chosen,'rejected':eval_rejected})
 
     torch_dtype = (
         model_args.torch_dtype if model_args.torch_dtype in ["auto", None] else getattr(torch, model_args.torch_dtype)
@@ -203,8 +207,8 @@ def main():
         ref_model_init_kwargs=ref_model_kwargs,
         args=training_args,
         beta=training_args.beta,
-        train_dataset=raw_datasets["train"],
-        eval_dataset=raw_datasets["test"],
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
         tokenizer=tokenizer,
         max_length=training_args.max_length,
         max_prompt_length=training_args.max_prompt_length,
@@ -222,7 +226,7 @@ def main():
         checkpoint = last_checkpoint
     train_result = trainer.train(resume_from_checkpoint=checkpoint)
     metrics = train_result.metrics
-    metrics["train_samples"] = len(raw_datasets["train"])
+    metrics["train_samples"] = len(train_dataset)
     trainer.log_metrics("train", metrics)
     trainer.save_metrics("train", metrics)
     trainer.save_state()
@@ -235,7 +239,7 @@ def main():
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
         metrics = trainer.evaluate()
-        metrics["eval_samples"] = len(raw_datasets["test"])
+        metrics["eval_samples"] = len(eval_dataset)
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
@@ -249,8 +253,8 @@ def main():
     # Save everything else on main process
     kwargs = {
         "finetuned_from": model_args.model_name_or_path,
-        "dataset": list(data_args.dataset_mixer.keys()),
-        "dataset_tags": list(data_args.dataset_mixer.keys()),
+        #"dataset": list(data_args.dataset_mixer.keys()),
+        #"dataset_tags": list(data_args.dataset_mixer.keys()),
         "tags": ["alignment-handbook"],
     }
     if trainer.accelerator.is_main_process:
@@ -258,10 +262,6 @@ def main():
         # Restore k,v cache for fast inference
         trainer.model.config.use_cache = True
         trainer.model.config.save_pretrained(training_args.output_dir)
-
-    if training_args.push_to_hub is True:
-        logger.info("Pushing to hub...")
-        trainer.push_to_hub(**kwargs)
 
     logger.info("*** Training complete! ***")
 
