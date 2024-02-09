@@ -18,7 +18,7 @@ warnings.filterwarnings('ignore')
 
 # Argument parser
 
-PROMPT_TEMPLATE = '<|user|>{question}{sep_token}<|assistant|>'
+PROMPT_TEMPLATE = '[INST]{question}[/INST]'
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -50,9 +50,9 @@ def str_to_boolean(str):
         raise ValueError('String must be t or T for True and f or F for False')
 
 def extract_text(input_string):
-    index_t = input_string.find('<|assistant|>')
+    index_t = input_string.find('[/INST]')
     if index_t != -1:  
-        result = input_string[index_t + len('<|assistant|>'):]
+        result = input_string[index_t + len('[/INST]'):]
     else: 
         raise Exception
     return result
@@ -82,8 +82,7 @@ def main():
 
     for i in tqdm(range(len(test_df))):
         q = test_df.iloc[i]['질문']
-        prompt = PROMPT_TEMPLATE.format(question=q,
-                                        sep_token=tokenizer.eos_token)
+        prompt = PROMPT_TEMPLATE.format(question=q)
         inputs = tokenizer.encode(prompt, return_tensors="pt").to(device)
         outputs = model.generate(input_ids=inputs, max_length=args.max_length, num_beams=5)
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)

@@ -124,13 +124,13 @@ def main():
         row = train_data.iloc[i]
         question = row['질문']
         answer = row['답변']
-        train_texts.append(f"<|user|>{question}{tokenizer.eos_token}<|assistant|>{answer}{tokenizer.eos_token}")
+        train_texts.append(f"[INST]{question}[/INST]{answer}{tokenizer.eos_token}")
 
     for i in range(len(eval_data)):
         row = eval_data.iloc[i]
         question = row['질문']
         answer = row['답변']
-        eval_texts.append(f"<|user|>{question}{tokenizer.eos_token}<|assistant|>{answer}{tokenizer.eos_token}")
+        eval_texts.append(f"[INST]{question}[/INST]{answer}{tokenizer.eos_token}")
 
     train_dataset = Dataset.from_dict({'text':train_texts})
     eval_dataset = Dataset.from_dict({'text':eval_texts})

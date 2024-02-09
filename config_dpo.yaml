@@ -1,5 +1,5 @@
 # Model arguments
-model_name_or_path: model/GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora-v1
+model_name_or_path: model/LDCC-SOLAR-10.7B-sft-qlora-v3
 torch_dtype: float16
 
 # LoRA arguments
@@ -18,8 +18,8 @@ lora_target_modules:
 - down_proj
 
 # Data training arguments
-train_data_path: data/dpo/GAI-LLM-Yi-Ko-6B-mixed-v15-qlora-v1-dpo-train.csv
-eval_data_path: data/dpo/GAI-LLM-Yi-Ko-6B-mixed-v15-qlora-v1-dpo-eval.csv
+train_data_path: data/dpo/LDCC-SOLAR-10.7B-v3-dpo-train.csv
+eval_data_path: data/dpo/LDCC-SOLAR-10.7B-v3-dpo-eval.csv
 preprocessing_num_workers: 8
 
 # DPOTrainer arguments
@@ -32,7 +32,7 @@ gradient_accumulation_steps: 2
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
   use_reentrant: false
-hub_model_id: GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora
+hub_model_id: LDCC-SOLAR-10.7B
 learning_rate: 5.0e-5
 log_level: info
 logging_steps: 10
@@ -41,7 +41,7 @@ max_length: 512
 max_prompt_length: 512
 num_train_epochs: 1
 optim: paged_adamw_32bit
-output_dir: model/GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora-dpo-v1 # It is handy to append `hub_model_revision` to keep track of your local experiments
+output_dir: model/LDCC-SOLAR-10.7B-dpo-qlora-v3 # It is handy to append `hub_model_revision` to keep track of your local experiments
 per_device_train_batch_size: 8
 per_device_eval_batch_size: 8
 push_to_hub: false

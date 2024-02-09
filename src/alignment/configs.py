@@ -188,6 +188,9 @@ class DataArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
+    train_data_path: Optional[str] = field(default=None, metadata={"help": ""})
+    eval_data_path: Optional[str] = field(default=None, metadata={"help": ""})
+
     chat_template: Optional[str] = field(default=None, metadata={"help": "The chat template to use."})
     dataset_mixer: Optional[Dict[str, float]] = field(
         default=None,
