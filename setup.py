@@ -64,7 +64,7 @@ _deps = [
     "sentencepiece>=0.1.99",
     "scipy",
     "tensorboard",
-    "torch==2.1.2",
+    "torch",
     "transformers==4.36.2",
     "trl==0.7.7",
     "jinja2>=3.0.0",

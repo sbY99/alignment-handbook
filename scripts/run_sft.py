@@ -21,6 +21,7 @@ import logging
 import random
 import sys
 
+import pandas as pd
 import datasets
 from datasets import Dataset
 import torch
@@ -46,6 +47,9 @@ from trl import SFTTrainer
 
 logger = logging.getLogger(__name__)
 
+import os
+
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 def main():
     parser = H4ArgumentParser((ModelArguments, DataArguments, SFTConfig))
@@ -109,22 +113,27 @@ def main():
     '''
     #train_dataset = raw_datasets["train"]
     #eval_dataset = raw_datasets["test"]
-
-    with open(data_args.train_data_path, "r") as d:
-        train_data = json.load(d)
-    with open(data_args.test_data_path, "r") as d:
-        test_data = json.load(d)
+    
+    train_data = pd.read_csv(data_args.train_data_path)
+    eval_data = pd.read_csv(data_args.eval_data_path)
 
     train_texts = []
-    test_texts = []
+    eval_texts = []
 
-    for data in test_data['data']:
-        train_texts.append(f"<|user|>{data['question']}{tokenizer.eos_token}<|assistant|>{data['answer']}{tokenizer.eos_token}")
-    for data in test_data['data']:
-        test_texts.append(f"<|user|>{data['question']}{tokenizer.eos_token}<|assistant|>{data['answer']}{tokenizer.eos_token}")
+    for i in range(len(train_data)):
+        row = train_data.iloc[i]
+        question = row['질문']
+        answer = row['답변']
+        train_texts.append(f"<|user|>{question}{tokenizer.eos_token}<|assistant|>{answer}{tokenizer.eos_token}")
+
+    for i in range(len(eval_data)):
+        row = eval_data.iloc[i]
+        question = row['질문']
+        answer = row['답변']
+        eval_texts.append(f"<|user|>{question}{tokenizer.eos_token}<|assistant|>{answer}{tokenizer.eos_token}")
 
     train_dataset = Dataset.from_dict({'text':train_texts})
-    eval_dataset = Dataset.from_dict({'text':test_texts})
+    eval_dataset = Dataset.from_dict({'text':eval_texts})
 
     #with training_args.main_process_first(desc="Log a few random samples from the processed training set"):
     #    for index in random.sample(range(len(raw_datasets["train"])), 3):

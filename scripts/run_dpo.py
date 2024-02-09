@@ -16,7 +16,7 @@
 import logging
 import random
 import sys
-
+import pandas as pd
 import torch
 import transformers
 from transformers import AutoModelForCausalLM, set_seed
@@ -76,12 +76,13 @@ def main():
     ###############
     # Load datasets
     ###############
+    '''
     raw_datasets = get_datasets(data_args, splits=data_args.dataset_splits)
     logger.info(
         f"Training on the following splits: {[split + ' : ' + str(dset.num_rows) for split, dset in raw_datasets.items()]}"
     )
     column_names = list(raw_datasets["train"].features)
-
+    '''
     #####################################
     # Load tokenizer and process datasets
     #####################################
@@ -91,6 +92,7 @@ def main():
     #####################
     # Apply chat template
     #####################
+    '''
     raw_datasets = raw_datasets.map(
         apply_chat_template,
         fn_kwargs={"tokenizer": tokenizer, "task": "dpo"},
@@ -110,6 +112,38 @@ def main():
         logger.info(f"Prompt sample {index} of the raw training set:\n\n{raw_datasets['train'][index]['prompt']}")
         logger.info(f"Chosen sample {index} of the raw training set:\n\n{raw_datasets['train'][index]['chosen']}")
         logger.info(f"Rejected sample {index} of the raw training set:\n\n{raw_datasets['train'][index]['rejected']}")
+    '''
+
+    train_data = pd.read_csv(data_args.train_data_path)
+    eval_data = pd.read_csv(data_args.eval_data_path)
+
+    train_prompts = []
+    train_chosen = []
+    train_rejected = []
+
+    eval_prompts = []
+    eval_chosen = []
+    eval_rejected = []
+
+    for i in range(len(train_data)):
+        row = train_data.iloc[i]
+        prompt = row['prompt']
+        chosen = row['chosen']
+        rejected = row['rejected']
+
+        train_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>{chosen}{tokenizer.eos_token}")
+        train_chosen.append(chosen)
+        train_chosen.append(rejected)
+    
+    for i in range(len(eval_data)):
+        row = eval_data.iloc[i]
+        prompt = row['prompt']
+        chosen = row['chosen']
+        rejected = row['rejected']
+
+        eval_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>{chosen}{tokenizer.eos_token}")
+        eval_chosen.append(chosen)
+        eval_chosen.append(rejected)
 
     torch_dtype = (
         model_args.torch_dtype if model_args.torch_dtype in ["auto", None] else getattr(torch, model_args.torch_dtype)
