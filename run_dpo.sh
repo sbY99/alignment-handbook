@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES=1,2,3 ACCELERATE_LOG_LEVEL=info accelerate launch --config_file recipes/accelerate_configs/deepspeed_zero3.yaml --num_processes=3 scripts/run_dpo.py config_dpo.yaml --load_in_4bit=false
+CUDA_VISIBLE_DEVICES=1,2 ACCELERATE_LOG_LEVEL=info accelerate launch --config_file recipes/accelerate_configs/deepspeed_zero3.yaml --num_processes=2 scripts/run_dpo.py config_dpo.yaml --load_in_4bit=false

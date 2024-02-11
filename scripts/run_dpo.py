@@ -132,9 +132,9 @@ def main():
         chosen = row['chosen']
         rejected = row['rejected']
 
-        train_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>{chosen}{tokenizer.eos_token}")
-        train_chosen.append(chosen)
-        train_rejected.append(rejected)
+        train_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>")
+        train_chosen.append(f'{chosen}{tokenizer.eos_token}')
+        train_rejected.append(f'{rejected}{tokenizer.eos_token}')
     
     for i in range(len(eval_data)):
         row = eval_data.iloc[i]
@@ -142,9 +142,9 @@ def main():
         chosen = row['chosen']
         rejected = row['rejected']
 
-        eval_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>{chosen}{tokenizer.eos_token}")
-        eval_chosen.append(chosen)
-        eval_rejected.append(rejected)
+        eval_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>")
+        eval_chosen.append(f'{chosen}{tokenizer.eos_token}')
+        eval_rejected.append(f'{rejected}{tokenizer.eos_token}')
 
     train_dataset = Dataset.from_dict({'prompt':train_prompts,'chosen':train_chosen,'rejected':train_rejected})
     eval_dataset = Dataset.from_dict({'prompt':eval_prompts,'chosen':eval_chosen,'rejected':eval_rejected})
