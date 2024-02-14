@@ -26,6 +26,8 @@ def get_args():
                         default='GAI-LLM/Yi-Ko-6B-mixed-v15')
     parser.add_argument('--adapter_path', type=str,
                         default='model/GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora-v1')
+    parser.add_argument('--is_adapter_model', type=str_to_boolean,
+                        default='True')
     parser.add_argument('--max_length', type=int,
                         default=512)
     parser.add_argument('--output_path', type=str,
@@ -72,7 +74,8 @@ def main():
 
     device = 'cuda'
     model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto")
-    model = PeftModel.from_pretrained(model, args.adapter_path, device_map="auto")
+    if args.is_adapter_model:
+        model = PeftModel.from_pretrained(model, args.adapter_path, device_map="auto")
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
