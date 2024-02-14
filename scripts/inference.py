@@ -61,6 +61,9 @@ def main():
     random_seed = 42
     set_seed(random_seed)
 
+    if not os.path.exists('result'):
+        os.makedirs('result')
+
     # Hidden warning message
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     np.random.seed(random_seed)

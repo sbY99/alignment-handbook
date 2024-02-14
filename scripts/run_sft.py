@@ -43,7 +43,7 @@ from alignment import (
     get_tokenizer,
 )
 from trl import SFTTrainer
-
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,9 @@ import os
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 def main():
+    if not os.path.exists('model'):
+        os.makedirs('model')
+
     parser = H4ArgumentParser((ModelArguments, DataArguments, SFTConfig))
     model_args, data_args, training_args = parser.parse()
 
