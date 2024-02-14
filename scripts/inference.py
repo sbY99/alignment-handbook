@@ -18,7 +18,7 @@ warnings.filterwarnings('ignore')
 
 # Argument parser
 
-PROMPT_TEMPLATE = '<|user|>{question}{sep_token}<|assistant|>'
+PROMPT_TEMPLATE = '[INST]{question}[/INST]'
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -50,9 +50,9 @@ def str_to_boolean(str):
         raise ValueError('String must be t or T for True and f or F for False')
 
 def extract_text(input_string):
-    index_t = input_string.find('<|assistant|>')
+    index_t = input_string.find('[/INST]')
     if index_t != -1:  
-        result = input_string[index_t + len('<|assistant|>'):]
+        result = input_string[index_t + len('[/INST]'):]
     else: 
         raise Exception
     return result

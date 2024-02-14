@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=0,1,2 ACCELERATE_LOG_LEVEL=info accelerate launch --config_file recipes/accelerate_configs/deepspeed_zero3.yaml --num_processes=3 scripts/run_sft.py config_full.yaml
