@@ -100,6 +100,15 @@ def get_rewards(embed_model, response_texts, labels):
     return rewards
     
 def main():
+    import random
+    import numpy as np
+    import torch
+
+    random_seed = 42
+    random.seed(random_seed)
+    np.random.seed(random_seed)
+    torch.manual_seed(random_seed)
+    
     model = AutoModelForCausalLMWithValueHead.from_pretrained('../model/kobart/checkpoint-2800/')
     tokenizer = PreTrainedTokenizerFast.from_pretrained( "gogamza/kobart-base-v2", bos_token="<s>", eos_token="</s>",unk_token='<unk>',pad_token='<pad>',mask_token='<mask>')   
 

@@ -67,26 +67,36 @@ class ChatDataset(Dataset):
                 'labels': np.array(labels, dtype=np.int_)}
     
 def main():
-    model = BartForConditionalGeneration.from_pretrained("gogamza/kobart-base-v2", device_map="auto")
+    import random
+    import numpy as np
+    import torch
+
+    random_seed = 42
+    random.seed(random_seed)
+    np.random.seed(random_seed)
+    torch.manual_seed(random_seed)
+    
+    model = BartForConditionalGeneration.from_pretrained("gogamza/kobart-base-v2")
     tokenizer = PreTrainedTokenizerFast.from_pretrained( "gogamza/kobart-base-v2", bos_token="<s>", eos_token="</s>",unk_token='<unk>',pad_token='<pad>',mask_token='<mask>')
 
-    train_data= ChatDataset('data/train_v3.csv',256)
-    val_data= ChatDataset('data/eval_v3.csv',256)
+    train_data= ChatDataset('data/train_v4.csv',512)
+    val_data= ChatDataset('data/eval_v4.csv',512)
 
     training_args = TrainingArguments(
         output_dir="model/kobart",
         per_device_train_batch_size=64,
         per_device_eval_batch_size=32,
         evaluation_strategy="steps",
-        eval_steps=400,
-        logging_steps=400,
-        gradient_accumulation_steps=2,
-        num_train_epochs=1,
+        eval_steps=800,
+        logging_steps=800,
+        gradient_accumulation_steps=1,
+        num_train_epochs=4,
         weight_decay=0.1,
         warmup_ratio=0.1,
         lr_scheduler_type="cosine",
         learning_rate=5e-5,
-        save_steps=400,
+        save_steps=800,
+        save_total_limit=1
     )
 
     trainer = Trainer(
