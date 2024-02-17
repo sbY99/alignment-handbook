@@ -1,42 +1,28 @@
-import argparse
-import logging
-import os
-
 import numpy as np
 import pandas as pd
 from pytorch_lightning import loggers as pl_loggers
-from torch.utils.data import DataLoader, Dataset
 from transformers import (BartForConditionalGeneration,
                           PreTrainedTokenizerFast)
 from transformers.optimization import AdamW, get_cosine_schedule_with_warmup
 from transformers import AutoModelForCausalLM, TrainingArguments, Trainer
-from trl import AutoModelForCausalLMWithValueHead
+from trl import AutoModelForSeq2SeqLMWithValueHead
 from sentence_transformers import SentenceTransformer # SentenceTransformer Version 2.2.2
 
 import torch
 from trl import PPOTrainer
 from trl import PPOConfig
 from tqdm import tqdm
+from torch.nn.utils.rnn import pad_sequence
+
+import warnings
+warnings.filterwarnings('ignore')
 
 class PPODataset(torch.utils.data.Dataset):
-    def __init__(self, path1, path2=None):
-        df1 = pd.read_csv(path1)
-        if path2:
-            df2 = pd.read_csv(path2)
-            df = pd.concat((df1, df2))
-        else:
-            df = df1
-            
-        self.dataset = df1
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
-            "gogamza/kobart-base-v2",
-            bos_token="<s>",
-            eos_token="</s>",
-            unk_token='<unk>',
-            pad_token='<pad>',
-            mask_token='<mask>'
-        )
-        self.max_seq_len = 256
+    def __init__(self, tokenizer, path):
+        df = pd.read_csv(path)
+        self.dataset = df
+        self.tokenizer = tokenizer
+        self.max_seq_len = 512
         self.bos_token = '<s>'
         self.eos_token = '</s>'
 
@@ -96,7 +82,9 @@ def get_rewards(embed_model, response_texts, labels):
         label_embed = embed_model.encode(label)
     
         sample_score = cosine_similarity(label_embed, pred_embed)
+        sample_score = torch.tensor(sample_score)
         rewards.append(sample_score)
+
     return rewards
     
 def main():
@@ -109,23 +97,28 @@ def main():
     np.random.seed(random_seed)
     torch.manual_seed(random_seed)
     
-    model = AutoModelForCausalLMWithValueHead.from_pretrained('../model/kobart/checkpoint-2800/')
-    tokenizer = PreTrainedTokenizerFast.from_pretrained( "gogamza/kobart-base-v2", bos_token="<s>", eos_token="</s>",unk_token='<unk>',pad_token='<pad>',mask_token='<mask>')   
+    model = AutoModelForSeq2SeqLMWithValueHead.from_pretrained('model/kobart/checkpoint-6400/')
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(
+        "gogamza/kobart-base-v2",
+        bos_token="<s>",
+        eos_token="</s>",
+        unk_token='<unk>',
+        pad_token='<pad>',
+        mask_token='<mask>'
+    )
 
     # Embedding Vector 추출에 활용할 모델(distiluse-base-multilingual-cased-v1) 불러오기
     embed_model = SentenceTransformer('distiluse-base-multilingual-cased-v1')
 
-    train_df = pd.read_csv('../data/train_v3.csv')
-    eval_df = pd.read_csv('../data/eval_v3.csv')
-
-    train_dataset=PPODataset('../data/train_v3.csv','../data/eval_v3.csv')
-
+    train_dataset=PPODataset(tokenizer, path='data/train_ppo_v1.csv')
+    
     config = PPOConfig(
         model_name="gogamza/kobart-base-v2",
-        learning_rate=1e-4,
-        batch_size=64,
-        gradient_accumulation_steps=2,
-        ppo_epochs=4,
+        learning_rate=1e-5,
+        seed=random_seed,
+        batch_size=128,
+        gradient_accumulation_steps=1,
+        ppo_epochs=2,
     )
 
     ppo_trainer = PPOTrainer(
@@ -140,34 +133,48 @@ def main():
         "top_k": 0.0,
         "top_p": 1.0,
         "do_sample": True,
-        "pad_token_id": tokenizer.eos_token_id,
+        "pad_token_id": tokenizer.pad_token_id,
+        "eos_token_id": tokenizer.eos_token_id,
+        "bos_token_id": tokenizer.bos_token_id,
         "max_length":512
     }
 
     for epoch in tqdm(range(ppo_trainer.config.ppo_epochs), "epoch: "):
         for batch in tqdm(ppo_trainer.dataloader): 
             query_tensors = batch["input_ids"]
-            query_tensors_for_input = []
+            query_tensors_for_step = []
             response_tensors = []
+
             for query_tensor in query_tensors:
                 #### Get response from SFTModel
                 response_tensor = ppo_trainer.generate(query_tensor, **generation_kwargs)
                 response_tensors.append(response_tensor)
-                query_tensors_for_input.append(query_tensor)
+                query_tensors_for_step.append(query_tensor)
             
-            #batch["response"] = [tokenizer.decode(r.squeeze()) for r in response_tensors]
-            response_texts = [tokenizer.decode(r.squeeze(), skip_special_tokens=True) for r in response_tensors]
-            labels =[tokenizer.decode(l.squeeze(), skip_special_tokens=True) for l in batch['decoder_input_ids']]
+            response_tensors_for_input = pad_sequence(
+                [response_tensors[index][0] for index in range(len(response_tensors))],
+                batch_first=True, padding_value=tokenizer.pad_token_id)
+            response_tensors_for_step = [i for i in response_tensors_for_input]
             
+            response_texts =  tokenizer.batch_decode(response_tensors_for_input, skip_special_tokens=True)
+            labels = tokenizer.batch_decode(batch['decoder_input_ids'], skip_special_tokens=True)
+
             #### Compute reward score
             rewards = get_rewards(embed_model, response_texts, labels)
+
+            #print(response_texts)
+            #print(labels)
+            #print(rewards)
 
             #pipe_outputs = reward_model(texts)
             #rewards = [torch.tensor(output[1]["score"]) for output in pipe_outputs]
 
             #### Run PPO step
-            stats = ppo_trainer.step(query_tensors_for_input, response_tensors, rewards)
+            stats = ppo_trainer.step(query_tensors_for_step, response_tensors_for_step, rewards)
             ppo_trainer.log_stats(stats, batch, rewards)
+            ppo_trainer.log_stats(stats, batch, rewards, columns_to_log=["query", "response", "ref_response", "ref_rewards"])
+
+    ppo_trainer.save_model("model/kobart-ppo-v1")
 
 if __name__ == "__main__":
     main()

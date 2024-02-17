@@ -1,6 +1,7 @@
-CUDA_VISIBLE_DEVICES=0,1,2 python scripts/inference.py \
---model_name=model/GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora-v4 \
+CUDA_VISIBLE_DEVICES=1,2 nohup python scripts/inference.py \
+--model_name=yanolja/KoSOLAR-10.7B-v0.2 \
+--adapter_path=model/yanolja-KoSOLAR-10.7B-v0.2-sft-qlora-v5 \
 --is_adapter_model=True \
---max_length=512 \
---output_path=result/GAI-LLM-Yi-Ko-6B-mixed-v15-qlora-v4.csv \
---response_path=result/GAI-LLM-Yi-Ko-6B-mixed-v15-qlora-v4.txt 
+--max_new_tokens=512 \
+--output_path=result/yanolja-KoSOLAR-10.7B-v0.2-sft-qlora-v5.csv \
+--response_path=result/yanolja-KoSOLAR-10.7B-v0.2-sft-qlora-v5.json &

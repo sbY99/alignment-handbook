@@ -64,7 +64,7 @@ def main():
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
     training_args = TrainingArguments(
-        output_dir="model/kogpt2",
+        output_dir="model/kogpt2-v4",
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
         evaluation_strategy="steps",

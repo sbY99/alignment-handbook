@@ -28,7 +28,7 @@ def get_args():
                         default='model/GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora-v1')
     parser.add_argument('--is_adapter_model', type=str_to_boolean,
                         default='True')
-    parser.add_argument('--max_length', type=int,
+    parser.add_argument('--max_new_tokens', type=int,
                         default=512)
     parser.add_argument('--output_path', type=str,
                         default='result/output.csv')
@@ -73,9 +73,9 @@ def main():
     args = get_args()
 
     device = 'cuda'
-    model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map = "auto")
     if args.is_adapter_model:
-        model = PeftModel.from_pretrained(model, args.adapter_path, device_map="auto")
+        model = PeftModel.from_pretrained(model, args.adapter_path, device_map = "auto")
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
@@ -91,7 +91,10 @@ def main():
         prompt = PROMPT_TEMPLATE.format(question=q,
                                         sep_token=tokenizer.eos_token)
         inputs = tokenizer.encode(prompt, return_tensors="pt").to(device)
-        outputs = model.generate(input_ids=inputs, max_length=args.max_length, num_beams=5)
+        outputs = model.generate(input_ids=inputs, 
+                                 num_beams=5, 
+                                 eos_token_id=tokenizer.eos_token_id, 
+                                 max_new_tokens=args.max_new_tokens)
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
         response = extract_text(response)
 
@@ -111,8 +114,19 @@ def main():
     # for debugging
     file_name = args.response_path
 
-    with open(file_name, 'w+') as file:
-        file.write('\n'.join(generated_sentence))
+    dataset = {'data':[]}
+    for i in range(len(test_df)):
+        row = test_df.iloc[i]
+        question = row['질문']
+        response = generated_sentence[i]
+        dataset['data'].append({
+            'question':question,
+            'response':response
+        })
+
+    import json
+    with open(file_name, 'w') as file:
+        json.dump(dataset, file, indent=4, ensure_ascii=False)
 
 if __name__ == '__main__':
     main()

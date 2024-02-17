@@ -83,7 +83,7 @@ def main():
     val_data= ChatDataset('data/eval_v4.csv',512)
 
     training_args = TrainingArguments(
-        output_dir="model/kobart",
+        output_dir="model/kobart-v4",
         per_device_train_batch_size=64,
         per_device_eval_batch_size=32,
         evaluation_strategy="steps",
