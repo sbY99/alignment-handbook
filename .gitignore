@@ -166,3 +166,4 @@ wandb/
 data/
 model/
 result/
+*.out

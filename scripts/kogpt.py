@@ -55,7 +55,7 @@ def main():
     eval_dataset = Dataset.from_dict({'text':eval_texts})
 
     def tokenizer_function(example): 
-        return tokenizer(example['text'], truncation=True, max_length=512)
+        return tokenizer(example['text'], truncation=True, max_length=1024)
 
     #raw_dataset의 map 함수를 사용해서 tokenizer_function을 모든 데이터에 적용(E)
     tokenized_train_dataset = train_dataset.map(tokenizer_function, batched=True)

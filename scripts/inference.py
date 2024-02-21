@@ -51,6 +51,7 @@ def str_to_boolean(str):
     else:
         raise ValueError('String must be t or T for True and f or F for False')
 
+
 def extract_text(input_string):
     index_t = input_string.find('[/INST]')
     if index_t != -1:  

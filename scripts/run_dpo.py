@@ -132,7 +132,7 @@ def main():
         chosen = row['chosen']
         rejected = row['rejected']
 
-        train_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>")
+        train_prompts.append(f"[INST]{prompt}[\INST]")
         train_chosen.append(f'{chosen}{tokenizer.eos_token}')
         train_rejected.append(f'{rejected}{tokenizer.eos_token}')
     
@@ -142,7 +142,7 @@ def main():
         chosen = row['chosen']
         rejected = row['rejected']
 
-        eval_prompts.append(f"<|user|>{prompt}{tokenizer.eos_token}<|assistant|>")
+        eval_prompts.append(f"[INST]{prompt}[\INST]")
         eval_chosen.append(f'{chosen}{tokenizer.eos_token}')
         eval_rejected.append(f'{rejected}{tokenizer.eos_token}')
 
