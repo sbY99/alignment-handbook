@@ -1,15 +1,30 @@
 ## Install
 ```
 conda create -n llm_train python=3.10
-```
-```
 conda activate llm_train
 ```
+```
+# Install torch
+# Please refer: https://pytorch.org/get-started/previous-versions/
 conda install pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 ```
+
 ```
+# Packages for training
 python -m pip install .
 ```
+
+## Download Dataset
+```
+pip install gdown
+mkdir data
+```
+
+```
+export data_path=data
+gdown https://drive.google.com/drive/folders/19_sIUa6wbpVpTRv232tygxU0-Au2z_GQ -O $data_path --folder
+```
+
 
 ## Train
 ```
