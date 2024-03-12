@@ -78,7 +78,8 @@ def main():
 
     embed_model = SentenceTransformer('distiluse-base-multilingual-cased-v1')
     
-    test_df = pd.read_csv('data/test_raw.csv')
+    # pre-defined
+    test_df = pd.read_csv('data/test.csv')
     sub_df = pd.read_csv('data/sample_submission.csv')
 
     generated_sentence = []

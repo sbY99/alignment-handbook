@@ -19,8 +19,8 @@ lora_target_modules:
 - down_proj
 
 # Data training arguments
-train_data_path: data/train_v5.csv
-eval_data_path: data/eval_v5.csv
+train_data_path: data/train.csv
+eval_data_path: data/eval.csv
 preprocessing_num_workers: 8
 
 
@@ -42,7 +42,7 @@ lr_scheduler_type: cosine
 max_seq_length: 1024
 max_steps: -1
 num_train_epochs: 1
-output_dir: model/yanolja-EEVE-Korean-10.8B-v1.0-v5-default-chat-template
+output_dir: model/final-model
 overwrite_output_dir: true
 per_device_eval_batch_size: 8
 per_device_train_batch_size: 8

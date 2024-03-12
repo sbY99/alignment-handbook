@@ -1,22 +1,26 @@
-## Install
+## Init
+### If you downloaded all the code locally, skip it.
 ```
 git clone https://github.com/sbY99/alignment-handbook.git
 cd alignment-handbook/
 ```
 
+## Install
 ```
 conda create -n llm_train python=3.10
 conda activate llm_train
 ```
+
+### Install torch
+### Please refer: https://pytorch.org/get-started/previous-versions/
 ```
-# Install torch
-# Please refer: https://pytorch.org/get-started/previous-versions/
 conda install pytorch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 ```
 
+### Install packages for training
 ```
-# Packages for training
 python -m pip install .
+pip install sentence_transformers
 ```
 
 ## Download Dataset
@@ -32,18 +36,23 @@ gdown https://drive.google.com/drive/folders/19_sIUa6wbpVpTRv232tygxU0-Au2z_GQ -
 
 
 ## Train
+### You have to specify your GPU number.
+### Required: data/eval.csv, data/sample_submission.csv (download using the above command)
+### Save the model weight in model/final-model
 ```
 sh run_sft_lora.sh
 ```
 
 ## Inference
+
+### You have to specify your GPU number.
+### Required: model/final-model (train the model using above train command or download the model weights), data/eval.csv, data/sample_submission.csv (download using the above command)
+### Save the output result in result/output.csv.
 ```
 sh inference_lora.sh
 ```
 
 ## Citation
-
-If you find the content of this repo useful in your work, please cite it as follows:
 
 ```bibtex
 @misc{alignment_handbook2023,
