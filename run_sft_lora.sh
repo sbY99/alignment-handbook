@@ -1,1 +1,1 @@
-CUDA_VISIBLE_DEVICES=1,2 ACCELERATE_LOG_LEVEL=info nohup accelerate launch --config_file recipes/accelerate_configs/deepspeed_zero3.yaml --num_processes=2 scripts/run_sft.py config_lora.yaml --load_in_4bit=false > nohup-last.out &
+CUDA_VISIBLE_DEVICES=1,2 ACCELERATE_LOG_LEVEL=info nohup accelerate launch --config_file recipes/accelerate_configs/deepspeed_zero3.yaml --num_processes=2 scripts/run_sft.py config_lora.yaml --load_in_4bit=false > nohup.out &

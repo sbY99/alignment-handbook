@@ -163,7 +163,7 @@ cython_debug/
 # Temp folders
 
 wandb/
-data/
 model/
 result/
 *.out
+data/
