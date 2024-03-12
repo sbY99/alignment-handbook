@@ -24,8 +24,10 @@ def get_args():
                         default='GAI-LLM/Yi-Ko-6B-mixed-v15')
     parser.add_argument('--adapter_path', type=str,
                         default='model/GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora-v1')
-    parser.add_argument('--is_adapter_model', type=str_to_boolean,
-                        default='True')
+    parser.add_argument('--test_data_path', type=str,
+                        default='data/test.csv')
+    parser.add_argument('--submission_data_path', type=str,
+                        default='data/sample_submission.csv')
     parser.add_argument('--max_new_tokens', type=int,
                         default=512)
     parser.add_argument('--output_path', type=str,
@@ -78,9 +80,8 @@ def main():
 
     embed_model = SentenceTransformer('distiluse-base-multilingual-cased-v1')
     
-    # pre-defined
-    test_df = pd.read_csv('data/test.csv')
-    sub_df = pd.read_csv('data/sample_submission.csv')
+    test_df = pd.read_csv(args.test_data_path)
+    sub_df = pd.read_csv(args.submission_data_path)
 
     generated_sentence = []
 
