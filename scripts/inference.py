@@ -21,19 +21,19 @@ warnings.filterwarnings('ignore')
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', type=str,
-                        default='GAI-LLM/Yi-Ko-6B-mixed-v15')
+                        default='yanolja/EEVE-Korean-10.8B-v1.0')
     parser.add_argument('--adapter_path', type=str,
-                        default='model/GAI-LLM-Yi-Ko-6B-mixed-v15-sft-qlora-v1')
+                        default='model/final-model')
     parser.add_argument('--test_data_path', type=str,
-                        default='data/test.csv')
+                        default='raw-data/test.csv')
     parser.add_argument('--submission_data_path', type=str,
-                        default='data/sample_submission.csv')
+                        default='raw-data/sample_submission.csv')
     parser.add_argument('--max_new_tokens', type=int,
                         default=512)
     parser.add_argument('--output_path', type=str,
                         default='result/output.csv')
     parser.add_argument('--response_path', type=str,
-                        default='result/response.txt')
+                        default='result/output-text.txt')
     args = parser.parse_args()
 
     config = defaultdict()

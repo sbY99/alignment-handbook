@@ -1,10 +1,3 @@
-## Init
-### If you downloaded all the code locally, skip it.
-```
-git clone https://github.com/sbY99/alignment-handbook.git
-cd alignment-handbook/
-```
-
 ## Install
 ```
 conda create -n llm_train python=3.10
@@ -32,14 +25,17 @@ mkdir data
 ```
 export data_path=data
 gdown https://drive.google.com/drive/folders/19_sIUa6wbpVpTRv232tygxU0-Au2z_GQ -O $data_path --folder
+
+export raw_data_path=raw-data
+gdown https://drive.google.com/drive/folders/1leDy1PBXGdtlpY-IdUpEOtPHpCScZnfQ -O $raw_data_path --folder
 ```
 
 
 ## Train
 ### You have to specify your GPU number.
 ### Required Files: 
+- data/train.csv (download using the 'Download Dataset' command)
 - data/eval.csv (download using the 'Download Dataset' command)
-- data/sample_submission.csv (download using the 'Download Dataset' command)
 ### Save the model weight in model/final-model
 ```
 sh run_sft_lora.sh
@@ -50,8 +46,8 @@ sh run_sft_lora.sh
 ### You have to specify your GPU number.
 ### Required Files: 
 - model/final-model (train the model using above train command or download the model weights)
-- data/eval.csv (download using the 'Download Dataset' command)
-- data/sample_submission.csv (download using the 'Download Dataset' command)
+- raw-data/eval.csv (download using the 'Download Dataset' command)
+- raw-data/sample_submission.csv (download using the 'Download Dataset' command)
   
 ### There are two output files. 
 - result/output.csv: file used for dacon submission that the model answer is embedded.
