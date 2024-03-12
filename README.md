@@ -53,7 +53,9 @@ sh run_sft_lora.sh
 - data/eval.csv (download using the 'Download Dataset' command)
 - data/sample_submission.csv (download using the 'Download Dataset' command)
   
-### Save the output result in result/output.csv.
+### There are two output files. 
+- result/output.csv: file used for dacon submission that the model answer is embedded.
+- result/output-text.json: file
 ```
 sh inference_lora.sh
 ```
