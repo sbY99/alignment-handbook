@@ -49,13 +49,13 @@ sh run_sft_lora.sh
 
 ### You have to specify your GPU number.
 ### Required Files: 
-- model/final-model (train the model using above train command / download the model weights)
+- model/final-model (train the model using above train command or download the model weights)
 - data/eval.csv (download using the 'Download Dataset' command)
 - data/sample_submission.csv (download using the 'Download Dataset' command)
   
 ### There are two output files. 
 - result/output.csv: file used for dacon submission that the model answer is embedded.
-- result/output-text.json: file
+- result/output-text.json: file that allows you to check answers in text form, consisting of questions and answers.
 ```
 sh inference_lora.sh
 ```
