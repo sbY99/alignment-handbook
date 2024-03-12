@@ -18,8 +18,6 @@ warnings.filterwarnings('ignore')
 
 # Argument parser
 
-PROMPT_TEMPLATE = '[INST]{question}[/INST]'
-
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', type=str,
@@ -51,14 +49,13 @@ def str_to_boolean(str):
     else:
         raise ValueError('String must be t or T for True and f or F for False')
 
-
 def extract_text(input_string):
-    index_t = input_string.find('[/INST]')
+    index_t = input_string.rfind('assistant')
     if index_t != -1:  
-        result = input_string[index_t + len('[/INST]'):]
+        result = input_string[index_t + len('assistant'):]
     else: 
         raise Exception
-    return result
+    return result.strip()
 
 def main():
     random_seed = 42
@@ -77,8 +74,7 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map = "auto")
     if args.is_adapter_model:
         model = PeftModel.from_pretrained(model, args.adapter_path, device_map = "auto")
-
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+        tokenizer = AutoTokenizer.from_pretrained(args.adapter_path)
 
     embed_model = SentenceTransformer('distiluse-base-multilingual-cased-v1')
     
@@ -89,13 +85,20 @@ def main():
 
     for i in tqdm(range(len(test_df))):
         q = test_df.iloc[i]['질문']
-        prompt = PROMPT_TEMPLATE.format(question=q,
-                                        sep_token=tokenizer.eos_token)
-        inputs = tokenizer.encode(prompt, return_tensors="pt").to(device)
+       
+        inputs = tokenizer.apply_chat_template(
+            [
+                {'role':'user','content':q}
+            ]
+            , add_generation_prompt=True,
+            return_tensors='pt'
+        ).to(device)
+
         outputs = model.generate(input_ids=inputs, 
-                                 num_beams=5, 
+                                 num_beams=5,
                                  eos_token_id=tokenizer.eos_token_id, 
                                  max_new_tokens=args.max_new_tokens)
+        
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
         response = extract_text(response)
 

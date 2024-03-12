@@ -93,52 +93,54 @@ def main():
     ###############
     # Load datasets
     ###############
-    #raw_datasets = get_datasets(data_args, splits=data_args.dataset_splits)
-    #logger.info(f"Training on the following datasets and their proportions: {[split + ' : ' + str(dset.num_rows) for split, dset in raw_datasets.items()]}")
-    #column_names = list(raw_datasets["train"].features)
 
     ################
     # Load tokenizer
     ################
     tokenizer = get_tokenizer(model_args, data_args)
+    
 
     #####################
     # Apply chat template
     #####################
-    '''
-    raw_datasets = raw_datasets.map(
-        apply_chat_template,
-        fn_kwargs={"tokenizer": tokenizer, "task": "sft"},
-        num_proc=data_args.preprocessing_num_workers,
-        remove_columns=column_names,
-        desc="Applying chat template",
-    )
-    '''
-    #train_dataset = raw_datasets["train"]
-    #eval_dataset = raw_datasets["test"]
     
     train_data = pd.read_csv(data_args.train_data_path)
     eval_data = pd.read_csv(data_args.eval_data_path)
 
     train_texts = []
     eval_texts = []
-
+    
     for i in range(len(train_data)):
         row = train_data.iloc[i]
         question = row['질문']
         answer = row['답변']
-        train_texts.append(f"[INST]{question}[/INST]{answer}{tokenizer.eos_token}")
-        #train_texts.append(f"[{question}\n{answer}{tokenizer.eos_token}")
+        item = [
+                {"role":"user", "content":question},
+                {"role":"assistant", "content":answer},
+        ]
+        text = tokenizer.apply_chat_template(item, tokenize=False, add_generation_prompt=True)
+        train_texts.append(text)
+        
 
     for i in range(len(eval_data)):
         row = eval_data.iloc[i]
         question = row['질문']
         answer = row['답변']
-        eval_texts.append(f"[INST]{question}[/INST]{answer}{tokenizer.eos_token}")
-        #eval_texts.append(f"[{question}\n{answer}{tokenizer.eos_token}")
+        item = [
+                {"role":"user", "content":question},
+                {"role":"assistant", "content":answer},
+        ]
+        text = tokenizer.apply_chat_template(item, tokenize=False, add_generation_prompt=True)
+        eval_texts.append(text)
 
     train_dataset = Dataset.from_dict({'text':train_texts})
     eval_dataset = Dataset.from_dict({'text':eval_texts})
+
+    print("=================== DATA EXAMPLE ===================")
+    print(train_dataset['text'][0])
+    print("---------------------------------------------------")
+    print(eval_dataset['text'][0])
+    print("===================================================")
 
     #with training_args.main_process_first(desc="Log a few random samples from the processed training set"):
     #    for index in random.sample(range(len(raw_datasets["train"])), 3):

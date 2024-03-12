@@ -21,6 +21,7 @@ import pandas as pd
 import torch
 import transformers
 from transformers import AutoModelForCausalLM, set_seed
+import json
 
 from alignment import (
     DataArguments,
@@ -115,8 +116,13 @@ def main():
         logger.info(f"Rejected sample {index} of the raw training set:\n\n{raw_datasets['train'][index]['rejected']}")
     '''
 
-    train_data = pd.read_csv(data_args.train_data_path)
-    eval_data = pd.read_csv(data_args.eval_data_path)
+    #train_data = pd.read_csv(data_args.train_data_path)
+    #eval_data = pd.read_csv(data_args.eval_data_path)
+
+    with open(data_args.train_data_path, 'r') as train_file:
+        train_data = json.load(train_file)['data']
+    with open(data_args.eval_data_path, 'r') as eval_file:
+        eval_data = json.load(eval_file)['data']
 
     train_prompts = []
     train_chosen = []
@@ -127,20 +133,26 @@ def main():
     eval_rejected = []
 
     for i in range(len(train_data)):
-        row = train_data.iloc[i]
+        row = train_data[i]
         prompt = row['prompt']
         chosen = row['chosen']
         rejected = row['rejected']
+
+        if chosen == rejected:
+            continue
 
         train_prompts.append(f"[INST]{prompt}[\INST]")
         train_chosen.append(f'{chosen}{tokenizer.eos_token}')
         train_rejected.append(f'{rejected}{tokenizer.eos_token}')
     
     for i in range(len(eval_data)):
-        row = eval_data.iloc[i]
+        row = eval_data[i]
         prompt = row['prompt']
         chosen = row['chosen']
         rejected = row['rejected']
+
+        if chosen == rejected:
+            continue
 
         eval_prompts.append(f"[INST]{prompt}[\INST]")
         eval_chosen.append(f'{chosen}{tokenizer.eos_token}')
