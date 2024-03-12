@@ -1,5 +1,10 @@
 ## Install
 ```
+git clone https://github.com/sbY99/alignment-handbook.git
+cd alignment-handbook/
+```
+
+```
 conda create -n llm_train python=3.10
 conda activate llm_train
 ```
