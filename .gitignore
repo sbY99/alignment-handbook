@@ -167,3 +167,4 @@ model/
 result/
 *.out
 data/
+raw-data/
